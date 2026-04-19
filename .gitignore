@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+
+# Datasets — too large for GitHub, download from PhysioNet (top-level only,
+# small result CSVs under results/ are kept).
+/*.csv
+
+# Trained model artefacts (reproducible from data)
+results/models/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+.claude/
