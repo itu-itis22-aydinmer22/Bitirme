@@ -1,0 +1,21 @@
+name: arrhythmia
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - scipy
+  - scikit-learn>=1.5
+  - pywavelets
+  - pandas
+  - matplotlib
+  - seaborn
+  - imbalanced-learn
+  - joblib
+  - pip
+  - libomp        # LightGBM / XGBoost OpenMP runtime
+  - pip:
+      - lightgbm>=4.5
+      - xgboost>=2.1
+      - reportlab
+      - pypdf

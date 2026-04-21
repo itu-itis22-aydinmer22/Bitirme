@@ -13,6 +13,9 @@ venv/
 # Trained model artefacts (reproducible from data)
 results/models/
 
+# Experiment run logs — large, re-generable
+results/logs/
+
 # OS
 .DS_Store
 Thumbs.db
