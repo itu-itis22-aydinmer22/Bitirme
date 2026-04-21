@@ -34,10 +34,42 @@ End-to-end ECG arrhythmia detector:
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-pip install numpy scipy scikit-learn pywavelets pandas matplotlib seaborn imbalanced-learn joblib
+pip install -r requirements.txt          # numpy, scipy, scikit-learn, pywavelets,
+                                         # pandas, matplotlib, seaborn,
+                                         # imbalanced-learn, joblib, lightgbm,
+                                         # xgboost, reportlab, pypdf
+# (LightGBM/XGBoost on macOS additionally need: brew install libomp)
 
 python main.py --n-estimators 200 --n-splits 5
 ```
+
+### Publication-grade extensions (v2)
+
+The pipeline was extended with a publication-quality benchmark suite. Each
+experiment script lives under `experiments/` and writes its results to
+`results/`:
+
+| Script | What it does |
+| --- | --- |
+| `experiments/dechazal_ds1_ds2.py` | Single deterministic DS1-train / DS2-test split per de Chazal 2004 — runs LDA / RF (SMOTE & Borderline-SMOTE) / LightGBM / XGBoost / RF+HMM. |
+| `experiments/benchmark_models.py` | 13-config grid: every (model, resampling, weighting, drop-Q, HMM) combination on 3-fold GroupKFold. |
+| `experiments/cross_dataset.py` | Train on MIT-BIH, evaluate on the Supraventricular and INCART databases — quantifies cross-dataset generalisation. |
+| `experiments/ablation.py` | Knock out one design decision at a time (feature group, single lead, no SMOTE, drop-Q, HMM, extended HRV/cross-lead features). |
+| `experiments/multi_seed.py` | Same configuration, three random seeds, mean ± std of every metric. |
+| `experiments/stacked_ensemble.py` | RF + LightGBM + XGBoost out-of-fold probabilities → logistic meta-learner with patient-disjoint stacking. |
+
+All extension code is under `src/`:
+
+| Module | Purpose |
+| --- | --- |
+| `src/models.py` | Unified factory for RF / LightGBM / XGBoost / LDA / LogReg with cost-sensitive sample weights (clinical AAMI cost matrix) and label-safe XGBoost wrapper. |
+| `src/resampling.py` | Uniform interface for SMOTE / Borderline-SMOTE / ADASYN / SMOTE+Tomek / SMOTE+ENN / random-undersampling. |
+| `src/postprocessing.py` | Patient-aware Hidden Markov Model Viterbi smoothing of beat-level predictions. |
+| `src/extended_features.py` | Local-window HRV (SDNN / RMSSD / pNN50 approximations), cross-lead deltas, RR-interval ratios — engineered from the published 32-feature CSV without needing the raw waveform. |
+| `src/ensemble.py` | Honest patient-disjoint stacked ensemble (RF + LGBM + XGB → LogReg meta). |
+| `src/error_analysis.py` | Per-patient performance breakdowns + misclassification visualisations. |
+| `src/data_loader.py` | Now also exposes `DS1_RECORDS` / `DS2_RECORDS` (de Chazal split), `feature_group_mask()` for ablation, `drop_q` flag. |
+| `src/train.py` | Multi-model CV driver (any model × any resampling × optional HMM × `groupkfold`/`dechazal` fold strategy). |
 
 Outputs land under `results/`:
 
