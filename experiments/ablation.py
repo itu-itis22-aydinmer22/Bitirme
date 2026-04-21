@@ -36,9 +36,12 @@ def _subset_cols(X, groups):
 
 
 def run_config(X, y, groups, tag: str, **overrides):
-    # ablation uses 3-fold and 150 trees — directional comparisons
-    cfg = TrainConfig(model="rf", resampling="smote", n_splits=3,
-                       n_estimators=150, random_state=42, **overrides)
+    # ablation uses 3-fold and 150 trees — directional comparisons.
+    # overrides beat defaults if the caller passes e.g. resampling="none".
+    defaults = dict(model="rf", resampling="smote", n_splits=3,
+                     n_estimators=150, random_state=42)
+    defaults.update(overrides)
+    cfg = TrainConfig(**defaults)
     t0 = time.time()
     results, preds, _ = cross_validate(X, y, groups, cfg)
     wall = time.time() - t0
